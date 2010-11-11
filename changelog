@@ -1,23 +1,44 @@
 ChangeLog:
 
-??-??-????: New: Created script to connect to WPA2 access points with one single command (gudgip)
-14-05-2010: Added: wep and non password functionality (DipSwitch)
-15-05-2010: Added: use last settings on no new settings given (DipSwitch)
-24-07-2010: Fixed: wep functionallity (DipSwitch)
-24-07-2010: Added: wpa functionallity (DipSwitch)
-24-07-2010: Added: scan for networks (DipSwitch)
-03-09-2010: Added: option to still safe the config while the script seems to have failed (DipSwitch)
-03-09-2010: Added: Proper display of scan option (trixter) Many thanks for his bad ass awk scripting skillz =) !!
-07-09-2010: Fixed: IE: Unknown: ############ showing up as encryption types (DipSwitch)
-07-09-2010: Fixed: Showing WEP encryption as encryption type (DipSwitch)
-07-09-2010: Fixed: check if awk exists before scanning (DipSwitch)
-07-09-2010: Added: show a astrix "*" in front of open networks (DipSwitch)
-07-09-2010: Added: bringing up wifi interface when it is found (DipSwitch)
-08-09-2010: Added: WEP string and hex key support (pref only hex was supported) (DipSwitch)
-09-09-2010: Added: Autodetection for encryption type (WPA, WPA2 and WEP (default is string still need -k hex for hex key) supported) (DipSwitch)
-11-09-2010: Fixed: Loads of bugs, can't recall which ones, script should work propperly now... (DipSwitch)
-11-09-2010: Fixed: Added trixter to the authors list ;) (DipSwitch)
-15-09-2010: Fixed: Set encryption off when no password is given, this because iwconfig remembers the settings (DipSwitch)
-17-09-2010: Fixed: Last item of iwlist wasn't working (trixter)
-17-09-2010: Fixed: Added output to a function (DipSwitch)
-17-09-2010: Fixed: Don't ask to safe config when i quiet mode because we might run from script and this would lockup the process (DipSwitch)
+??-??-????:
+	New: Created script to connect to WPA2 access points with one single command (gudgip)
+
+14-05-2010:
+	Added: wep and non password functionality (DipSwitch)
+
+15-05-2010:
+	Added: use last settings on no new settings given (DipSwitch)
+
+24-07-2010:
+	Fixed: wep functionallity (DipSwitch)
+	Added: wpa functionallity (DipSwitch)
+	Added: scan for networks (DipSwitch)
+
+03-09-2010:
+	Added: option to still safe the config while the script seems to have failed (DipSwitch)
+	Added: Proper display of scan option (trixter) Many thanks for his bad ass awk scripting skillz =) !!
+
+07-09-2010:
+	Fixed: IE: Unknown: ############ showing up as encryption types (DipSwitch)
+	Fixed: Showing WEP encryption as encryption type (DipSwitch)
+	Fixed: check if awk exists before scanning (DipSwitch)
+	Added: show a astrix "*" in front of open networks (DipSwitch)
+	Added: bringing up wifi interface when it is found (DipSwitch)
+
+08-09-2010:
+	Added: WEP string and hex key support (pref only hex was supported) (DipSwitch)
+
+09-09-2010:
+	Added: Autodetection for encryption type (WPA, WPA2 and WEP (default is string still need -k hex for hex key) supported) (DipSwitch)
+
+11-09-2010:
+	Fixed: Loads of bugs, can't recall which ones, script should work propperly now... (DipSwitch)
+	Fixed: Added trixter to the authors list ;) (DipSwitch)
+
+15-09-2010:
+	Fixed: Set encryption off when no password is given, this because iwconfig remembers the settings (DipSwitch)
+
+17-09-2010:
+	Fixed: Last item of iwlist wasn't working (trixter)
+	Fixed: Added output to a function (DipSwitch)
+	Fixed: Don't ask to safe config when i quiet mode because we might run from script and this would lockup the process (DipSwitch)
