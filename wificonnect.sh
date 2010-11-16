@@ -95,7 +95,7 @@ function version()
 $0 v1.0 by gudgip, DipSwitch, trixter
 
 Report bugs to dipswitch@codehouse.nl
-Home page: <http://www.codehouse.nl/scripts/wificonfig/>
+Home page: <http://git.codehouse.nl/p/wicon/>
 
 Web page not up yet! Have some patience pls...
 EOF
