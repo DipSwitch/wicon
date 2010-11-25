@@ -94,10 +94,8 @@ function version()
 	cat << EOF
 $0 v1.0 by gudgip, DipSwitch, trixter
 
-Report bugs to dipswitch@codehouse.nl
-Home page: <http://git.codehouse.nl/p/wicon/>
-
-Web page not up yet! Have some patience pls...
+Report bugs to dipswitch@codehouse.nl or https://git.codehouse.nl/p/wicon/issues/
+Home page: https://git.codehouse.nl/p/wicon/
 EOF
 }
 
