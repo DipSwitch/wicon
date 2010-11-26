@@ -332,15 +332,8 @@ GENERATE_CONF_ONLY=0;
 CONFIG="$DEFAULT_CONFIG";
 SCAN=0;
 ARGESSID="";
+PRINT_CONFIG=0;
 # EOV
-
-# require root access (or unless the sticky bit is set on iwconfig and owned by root)
-# BUG: Logging won't work properly with sticky bit set, need to make work around
-if [[ $(/usr/bin/id -u) -ne 0 && $(ls -l `type iwconfig | awk '{print $3}'` | awk '{print substr($1,4,1) $3}') != "sroot" ]]; then
-	stderr "Not running as root!";
-	stderr "Use \"sudo $0\" to run this program correctly.";
-	exit 1;
-fi
 
 # We need to load the config file first because we might want to change excisting variables
 FOUND_CONFIG=0;
@@ -377,7 +370,15 @@ for ap in $APPS; do
 	fi;
 done;
 
-while getopts "bi:t:k:l:e:p:c:rR:qvhgs" opt; do
+# require root access (or unless the sticky bit is set on iwconfig and owned by root)
+# BUG: Logging won't work properly with sticky bit set, need to make work around
+if [[ $(/usr/bin/id -u) -ne 0 && $(ls -l `type iwconfig | awk '{print $3}'` | awk '{print substr($1,4,1) $3}') != "sroot" ]]; then
+	stderr "Not running as root!";
+	stderr "Use \"sudo $0\" to run this program correctly.";
+	exit 1;
+fi
+
+while getopts "bi:t:k:l:e:p:c:rR:qvhgsw" opt; do
 	case $opt in
 		e)	if [[ "$ESSID" != "$OPTARG" ]]; then
 				LOGFILE="$DEFAULT_LOGFILE";
@@ -416,6 +417,7 @@ while getopts "bi:t:k:l:e:p:c:rR:qvhgs" opt; do
 		g)	GENERATE_CONF_ONLY=1 ;;
 		q)	QUIET=1 ;;
 		s)	SCAN=1 ;;
+	        w)      PRINTCONFIG=1; ;;
 		v)	version; exit 0; ;;
 		h)	usage; exit 0; ;;
 		\?)	usage; exit 1; ;;
@@ -426,6 +428,10 @@ done
 if [[ -z $ESSID && $SCAN -eq 0 && $GENERATE_CONF_ONLY -eq 0 ]]; then
 	usage;
 	exit 1;
+fi
+
+if [[ $PRINTCONFIG -eq 1 ]]; then
+    cat $CONFIG;
 fi
 
 if ! iswifi $INTERFACE; then
