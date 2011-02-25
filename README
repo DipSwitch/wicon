@@ -29,6 +29,9 @@ WPA2 Network: $0 -e ESSID -p PASSWORD -t wpa2
 Store config: $0 -e ESSID -p PASSWORD -t wpa -c home.conf
 Reuse: $0 -c home.conf
 
+Report bugs to dipswitch@codehouse.nl or https://github.com/DipSwitch/wicon/issues/
+Home page: https://github.com/DipSwitch/wicon/
+
 AUTHOR(S):
 gudgip
 DipSwitch
