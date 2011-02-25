@@ -1,0 +1,35 @@
+This script can be used to quickly setup an connection to an wireless network.
+The settings are stored in /etc/wicon.conf so the last settings will always be saved.
+This allowes you to restore the last known working connection by calling the application without arguments.
+OPTIONS:
+-e  ESSID
+-b  Hidden SSID network
+-p  Password for the ESSID
+-t  Password type (wpa, wpa2, wep)
+-k  Keytype (used for wep [hex|ascii]) default: ascii
+-i  Interface
+-l  Log File
+-r  Reload driver using the default given driver in this file
+-R  Reload driver using the given driver
+-g  Only generate config file
+-q  Quiet mode
+-c  Config file
+-P  Print the configurations
+-s  Scan for networks
+-h  Show this message
+-v  Version
+
+USAGE:
+Open Network: $0 -e ESSID
+Auto Detection: $0 -e ESSID -p PASSWORD
+WEP Network: $0 -e ESSID -p PASSWORD -t wep -k ascii
+WPA Network: $0 -e ESSID -p PASSWORD -t wpa
+WPA2 Network: $0 -e ESSID -p PASSWORD -t wpa2
+
+Store config: $0 -e ESSID -p PASSWORD -t wpa -c home.conf
+Reuse: $0 -c home.conf
+
+AUTHOR(S):
+gudgip
+DipSwitch
+trixter
