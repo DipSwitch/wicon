@@ -16,7 +16,7 @@ DEFAULT_INTERFACE="";
 DEFAULT_DRIVER="";
 DEFAULT_SAFE_CONFIG=1;
 DEFAULT_CONFIG="/etc/wicon.conf";
-DEFAULT_TEMP_FILE="$HOME/.tmpfile";
+DEFAULT_TEMP_FILE="`mktemp -u /tmp/wicon.XXXX`";
 
 # ------------------- You don't have to read below this line, you can but I know you don't want to =)
 
