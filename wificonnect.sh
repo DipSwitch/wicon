@@ -561,7 +561,7 @@ if ping -q -c 1 www.google.com &> /dev/null; then
 	safe_config;
     fi;
 else
-    stderr "Script failed! (Or ping blocked by firewall or maybe google is down xD)";
+    stderr "Script failed! (Or ping blocked by firewall or you broke the interwebz!!)";
     stderr "'ifconfig $INTERFACE' dump:";
     ifconfig $INTERFACE 1>&2;
     SAFE=0;
