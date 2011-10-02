@@ -528,6 +528,10 @@ WPA_KEY_MGMT="WPA-PSK"; # TODO: Add MGMT parsing
 
 if [[ -z "$TYPE" || "$TYPE" == "wpaa" && "$PASSWORD" != "" ]]; then
     if function_exists awk && [[ "$TYPE" == "" || "$TYPE" == "wpaa" ]]; then
+	if [[ "$TYPE" == "wpaa" ]]; then
+	    MAC_STORED="${MAC}";
+	fi;
+
 	iwlist_wrapper "$ESSID";
 	
 	if [[ $(wc "$DEFAULT_TEMP_FILE" | awk '{print $3}') == "0" ]]; then
@@ -542,6 +546,12 @@ fi
 
 if [[ -f "$DEFAULT_TEMP_FILE" ]]; then
     . "$DEFAULT_TEMP_FILE";
+
+    if [[ "${MAC}" != "${MAC_STORED}" ]]; then
+	stderr "The MAC address doesn't match the one stored in the config file, I guess somebody is trying to make a funny.";
+	stderr "Stored MAC: ${MAC_STORED} Current Active: ${MAC}";
+	exit 1;
+    fi;
 fi
 
 if [[ ! -z $PASSWORD && $TYPE == "wpaa" || $TYPE == "wpa" || $TYPE == "wpa2" ]]; then
