@@ -15,7 +15,8 @@ DEFAULT_PASSWORD="";
 DEFAULT_INTERFACE="";
 DEFAULT_DRIVER="";
 DEFAULT_SAFE_CONFIG=1;
-DEFAULT_CONFIG="/etc/wicon.conf";
+DEFAULT_CONFIG_DIR="${HOME}/.config/wicon/";
+DEFAULT_MAIN_CONFIG="${HOME}/.config/wicon/config.wcs";
 DEFAULT_TEMP_FILE="`mktemp -u /tmp/wicon.XXXX`";
 
 # ------------------- You don't have to read below this line, you can but I know you don't want to =)
@@ -130,17 +131,21 @@ function iswifi()
 # function to safe the config to the given config
 function safe_config()
 {
-    cat > "$CONFIG" << EOF
+    TRUE_FILE="${CONFIG_DIR}/${ESSID}.wc";
+    cat > "${TRUE_FILE}" << EOF
 ESSID="$ESSID";
 PASSWORD="$PASSWORD";
 DRIVER="$DRIVER";
-INTERFACE="$INTERFACE";
 RELOAD=$RELOAD;
 QUIET=$QUIET;
 BROADCAST=$BROADCAST;
-LOGFILE="$LOGFILE";
 TYPE="$TYPE";
 KEYTYPE="$KEYTYPE";
+EOF
+
+    cat > "${DEFAULT_MAIN_CONFIG}" <<EOF
+INTERFACE="$INTERFACE";
+LOGFILE="$LOGFILE";
 EOF
 
     #return cat exit level
@@ -149,8 +154,10 @@ EOF
     if [[ $ret -eq 0 ]]; then
 	stdout "Settings successfully saved.";
     else
-	stderr "Error saving the configuration file '$CONFIG'";
+	stderr "Error saving the configuration file '${TRUE_FILE}'";
     fi
+
+    unset TRUE_FILE;
 
     return $ret;
 }
@@ -330,11 +337,15 @@ PSK=;
 TYPE="$DEFAULT_TYPE";
 KEYTYPE="$DEFAULT_KEYTYPE"; 
 GENERATE_CONF_ONLY=0;
-CONFIG="$DEFAULT_CONFIG";
+CONFIG_DIR="$DEFAULT_CONFIG_DIR";
+CONFIG="$DEFAULT_MAIN_CONFIG";
 SCAN=0;
 ARGESSID="";
 PRINT_CONFIG=0;
 # EOV
+
+# make the config dir if it doens't exist
+[ ! -d "${DEFAULT_CONFIG_DIR}" ] && mkdir -p "${DEFAULT_CONFIG_DIR}";
 
 # We need to load the config file first because we might want to change excisting variables
 FOUND_CONFIG=0;
