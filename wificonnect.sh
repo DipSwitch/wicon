@@ -27,6 +27,7 @@ function cleanup() {
 	rm "$DEFAULT_TEMP_FILE";
     fi;
 	
+    # TODO keep this file?
     if [ -e "$DEFAULT_LOGFILE" ]; then
 	rm "$DEFAULT_LOGFILE";
     fi;
@@ -39,6 +40,8 @@ function cleanup() {
 	stderr "Interrupted!! Cleaned up files!";
     fi;
 	
+    safe_config;
+
     trap - INT TERM HUP
 	
     exit $PROPERCALL;
@@ -128,8 +131,8 @@ function iswifi()
     return 0;
 }
 
-# function to safe the config to the given config
-function safe_config()
+# function to safe the AP config
+function safe_ap_config()
 {
     TRUE_FILE="${CONFIG_DIR}/${ESSID}.wc";
     cat > "${TRUE_FILE}" << EOF
@@ -142,7 +145,23 @@ BROADCAST=$BROADCAST;
 TYPE="$TYPE";
 KEYTYPE="$KEYTYPE";
 EOF
+    #return cat exit level
+    ret=$?;
+	
+    if [[ $ret -eq 0 ]]; then
+	stdout "Settings successfully saved.";
+    else
+	stderr "Error saving the configuration file '${TRUE_FILE}'";
+    fi
 
+    unset TRUE_FILE;
+
+    return $ret;
+}
+
+# function to safe the config to the given config
+function safe_config()
+{
     cat > "${DEFAULT_MAIN_CONFIG}" <<EOF
 INTERFACE="$INTERFACE";
 LOGFILE="$LOGFILE";
@@ -151,10 +170,8 @@ EOF
     #return cat exit level
     ret=$?;
 	
-    if [[ $ret -eq 0 ]]; then
-	stdout "Settings successfully saved.";
-    else
-	stderr "Error saving the configuration file '${TRUE_FILE}'";
+    if [[ $ret -ne 0 ]]; then
+	stderr "Error saving the configuration file '${DEFAULT_MAIN_CONFIG}'";
     fi
 
     unset TRUE_FILE;
@@ -437,9 +454,32 @@ while getopts "bi:t:k:l:e:p:c:rR:qvhgsP" opt; do
     esac
 done
 
+stdout "Starting $0 script";
+
+# TODO when no argument is given, scan all AP's and see if we find one in our config dir
 if [[ -z $ESSID && $SCAN -eq 0 && $GENERATE_CONF_ONLY -eq 0 ]]; then
-    usage;
-    exit 1;
+    # check if we find an ESSID in our config dir
+    IFS_B="$IFS";
+    IFS=$'\n';
+    FOUND_AP=0;
+
+    for essid in `iwlist wlan1 scan | grep ESSID`; do
+	essid="`echo $essid | sed -Es 's/^[ ]*ESSID:"([a-zA-Z0-9 !_-]+)"$/\1/g'`"
+	if [ -f "${DEFAULT_CONFIG_DIR}/${essid}.wc" ]; then
+	    # found config for this AP, source config and continue
+	    . "${DEFAULT_CONFIG_DIR}/${essid}.wc";
+	    stdout "Loaded config for AP: $essid";
+
+	    FOUND_AP=1;
+
+	    break;
+	fi;
+    done
+
+    IFS="$IFS_B";
+
+    # if non found set SCAN to 1
+    [ $FOUND_AP -eq 0 ] && SCAN=1;
 fi
 
 if [[ $PRINTCONFIG -eq 1 ]]; then
@@ -453,10 +493,10 @@ fi
 if [[ $SCAN -eq 1 ]]; then
     iwlist_wrapper "$ARGESSID";
 
+    safe_config;
+
     exit 0;
 fi
-
-stdout "Starting $0 script"
 
 if [[ $GENERATE_CONF_ONLY -eq 1 ]]; then
     safe_config;
@@ -569,7 +609,7 @@ if ping -q -c 1 www.google.com &> /dev/null; then
     stdout "Script executed successfully!";
 	
     if [[ $DEFAULT_SAFE_CONFIG -eq 1 || "$CONFIG" != "$DEFAULT_CONFIG" ]]; then
-	safe_config;
+	safe_ap_config;
     fi;
 else
     stderr "Script failed! (Or ping blocked by firewall or you broke the interwebz!!)";
@@ -580,7 +620,7 @@ else
 	stderr -n "Do you still want to safe the configuration? [y/n] ";
 	read ans
 	if [[ "$ans" == "y" || "$ans" == "Y" ]]; then
-	    safe_config;
+	    safe_ap_config;
 	    SAFE=1;
 	elif [[ "$ans" == "n" || "$ans" == "N" ]]; then
 	    SAFE=1;
