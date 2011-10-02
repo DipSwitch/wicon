@@ -65,7 +65,7 @@ OPTIONS:
 -e  ESSID
 -b  Hidden SSID network
 -p  Password for the ESSID
--t  Password type (WPA, WPA2, WEP)
+-t  Password type (WPA, WPA2, WEP) (DEPRECATED)
 -k  Key type (used for WEP [hex|ascii]) default: ascii
 -i  Interface
 -l  Log File
@@ -83,11 +83,7 @@ USAGE:
 Pr0 m0d3: $0
 Open Network: $0 -e ESSID
 Auto Detection: $0 -e ESSID -p PASSWORD
-WEP Network: $0 -e ESSID -p PASSWORD -t WEP -k ascii
-WPA Network: $0 -e ESSID -p PASSWORD -t WPA
-WPA2 Network: $0 -e ESSID -p PASSWORD -t WPA2
 
-Store config: $0 -e ESSID -p PASSWORD -t WPA -c home.conf
 Reuse: $0 -c home.conf
 
 AUTHOR(S):
@@ -427,13 +423,13 @@ while getopts "bi:t:k:l:e:p:c:rR:qvhgsP" opt; do
         b) BROADCAST=1 ;;
 	p) PASSWORD=$OPTARG ;;
 	l) LOGFILE=$OPTARG ;;
-	t) if [[ "$OPTARG" == "wep" || "$OPTARG" == "wpa" || "$OPTARG" == "wpa2" || "$OPTARG" == "" ]]; then
-	       TYPE=$OPTARG;
-	   else
-	       stderr "only 'wep', 'wpa' and 'wpa2' are valid values for password type!";
-	       exit 1;
-	   fi;
-	   ;;
+#	t) if [[ "$OPTARG" == "wep" || "$OPTARG" == "wpa" || "$OPTARG" == "wpa2" || "$OPTARG" == "" ]]; then
+#	       TYPE=$OPTARG;
+#	   else
+#	       stderr "only 'wep', 'wpa' and 'wpa2' are valid values for password type!";
+#	       exit 1;
+#	   fi;
+#	   ;;
 	k) if [[ "$OPTARG" = "ascii" || "$OPTARG" = "hex" ]]; then
 	       KEYTYPE=$OPTARG;
 	   else
@@ -526,6 +522,7 @@ WPA_PAIRWISE="";
 WPA_GROUP="";
 WPA_KEY_MGMT="WPA-PSK"; # TODO: Add MGMT parsing
 
+# SHOULD ALWAYS BE TRUE WHEN PASS IS GIVEN NOW..
 if [[ -z "$TYPE" || "$TYPE" == "wpaa" && "$PASSWORD" != "" ]]; then
     if function_exists awk && [[ "$TYPE" == "" || "$TYPE" == "wpaa" ]]; then
 	if [[ "$TYPE" == "wpaa" ]]; then
@@ -542,12 +539,18 @@ if [[ -z "$TYPE" || "$TYPE" == "wpaa" && "$PASSWORD" != "" ]]; then
 	stderr "AWK Not found and no encryption type given, work your magic or use the -t flag.";
 	exit 1;
     fi
+elif [[ "${PASSWORD}" != "" ]]; then
+    stderr "Shouldn't get here, fill me a bug report!";
+    exit 1;
 fi
 
 if [[ -f "$DEFAULT_TEMP_FILE" ]]; then
     . "$DEFAULT_TEMP_FILE";
 
-    if [[ "${MAC}" != "${MAC_STORED}" ]]; then
+    echo ${MAC_STORED}
+    cat ${DEFAULT_TEMP_FILE};
+
+    if [[ ! -z "${MAC_STORED}" && "${MAC}" != "${MAC_STORED}" ]]; then
 	stderr "The MAC address doesn't match the one stored in the config file, I guess somebody is trying to make a funny.";
 	stderr "Stored MAC: ${MAC_STORED} Current Active: ${MAC}";
 	exit 1;
