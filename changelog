@@ -42,3 +42,6 @@ ChangeLog:
 	Fixed: Last item of iwlist wasn't working (trixter)
 	Fixed: Added output to a function (DipSwitch)
 	Fixed: Don't ask to safe config when i quiet mode because we might run from script and this would lockup the process (DipSwitch)
+
+02-09-2011:
+	Added: Support for per Access-Point config file and auto detect 'known' access points (DipSwitch)
