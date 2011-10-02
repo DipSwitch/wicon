@@ -547,9 +547,6 @@ fi
 if [[ -f "$DEFAULT_TEMP_FILE" ]]; then
     . "$DEFAULT_TEMP_FILE";
 
-    echo ${MAC_STORED}
-    cat ${DEFAULT_TEMP_FILE};
-
     if [[ ! -z "${MAC_STORED}" && "${MAC}" != "${MAC_STORED}" ]]; then
 	stderr "The MAC address doesn't match the one stored in the config file, I guess somebody is trying to make a funny.";
 	stderr "Stored MAC: ${MAC_STORED} Current Active: ${MAC}";
