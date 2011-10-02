@@ -2,15 +2,15 @@
 
 #
 # Author:		gudgip, DipSwitch, trixter
-# Function:		make connection using non password, wep, wpa or wpa2
+# Function:		make connection using non password, WEP, WPA, WPA2
 # 
-# CopyLeft this script may be used and alterd freely
+# CopyLeft this script may be used and altered freely
 #
 
 # Configuration defaults
 DEFAULT_LOGFILE="/var/log/wicon.log";
 DEFAULT_TYPE="";
-DEFAULT_KEYTYPE="ascii";
+DEFAULT_KEYTYPE="ASCII";
 DEFAULT_PASSWORD="";
 DEFAULT_INTERFACE="";
 DEFAULT_DRIVER="";
@@ -35,7 +35,7 @@ function cleanup() {
     if [ -z $PROPERCALL ]; then
 	echo "" 1>&2;
 	PROPERCALL=1;
-	stderr "Interupted!! Cleaned up files!";
+	stderr "Interrupted!! Cleaned up files!";
     fi;
 	
     trap - INT TERM HUP
@@ -53,13 +53,13 @@ usage: $0 options
 
 This script can be used to quickly setup an connection to an wireless network.
 The settings are stored in /etc/wicon.conf so the last settings will always be saved.
-This allowes you to restore the last known working connection by calling the application without arguments.
+This allows you to restore the last known working connection by calling the application without arguments.
 OPTIONS:
 -e  ESSID
 -b  Hidden SSID network
 -p  Password for the ESSID
--t  Password type (wpa, wpa2, wep)
--k  Keytype (used for wep [hex|ascii]) default: ascii
+-t  Password type (WPA, WPA2, WEP)
+-k  Key type (used for WEP [hex|ascii]) default: ascii
 -i  Interface
 -l  Log File
 -r  Reload driver using the default given driver in this file
@@ -75,11 +75,11 @@ OPTIONS:
 USAGE:
 Open Network: $0 -e ESSID
 Auto Detection: $0 -e ESSID -p PASSWORD
-WEP Network: $0 -e ESSID -p PASSWORD -t wep -k ascii
-WPA Network: $0 -e ESSID -p PASSWORD -t wpa
-WPA2 Network: $0 -e ESSID -p PASSWORD -t wpa2
+WEP Network: $0 -e ESSID -p PASSWORD -t WEP -k ascii
+WPA Network: $0 -e ESSID -p PASSWORD -t WPA
+WPA2 Network: $0 -e ESSID -p PASSWORD -t WPA2
 
-Store config: $0 -e ESSID -p PASSWORD -t wpa -c home.conf
+Store config: $0 -e ESSID -p PASSWORD -t WPA -c home.conf
 Reuse: $0 -c home.conf
 
 AUTHOR(S):
@@ -121,7 +121,7 @@ function iswifi()
 	    ;;
     esac;
 
-    # apperantly we have a wifi device called $1 let's bring it up just to be sure
+    # apparently we have a wifi device called $1 let's bring it up just to be sure
     ifconfig $1 up;
 
     return 0;
