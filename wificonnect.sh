@@ -55,8 +55,11 @@ function usage()
     cat << EOF
 usage: $0 options
 
+New mode: Pr0 m0d3, now if run the application without any arguments, it will first search for any kown AP to connect to
+                    if we found a matching config we'll auto connect. If none is found we print the scan output.
+
 This script can be used to quickly setup an connection to an wireless network.
-The settings are stored in /etc/wicon.conf so the last settings will always be saved.
+The settings are stored in ${DEFAULT_MAIN_CONFIG} so the last settings will always be saved.
 This allows you to restore the last known working connection by calling the application without arguments.
 OPTIONS:
 -e  ESSID
@@ -77,6 +80,7 @@ OPTIONS:
 -v  Version
 
 USAGE:
+Pr0 m0d3: $0
 Open Network: $0 -e ESSID
 Auto Detection: $0 -e ESSID -p PASSWORD
 WEP Network: $0 -e ESSID -p PASSWORD -t WEP -k ascii
@@ -99,7 +103,7 @@ function version()
     cat << EOF
 $0 v1.0 by gudgip, DipSwitch, trixter
 
-Report bugs to dipswitch@codehouse.nl or https://github.com/DipSwitch/wicon/issues/
+Report bugs to dipswitch@ownage4u.nl or https://github.com/DipSwitch/wicon/issues/
 Home page: https://github.com/DipSwitch/wicon/
 EOF
 }
@@ -144,6 +148,7 @@ QUIET=$QUIET;
 BROADCAST=$BROADCAST;
 TYPE="$TYPE";
 KEYTYPE="$KEYTYPE";
+MAC="$MAC";
 EOF
     #return cat exit level
     ret=$?;
@@ -250,13 +255,14 @@ if ( nessid && inwpa > 0 ) {
  if ( inwpa == 1 ) {
   proto = \"WPA\"
  } else if ( inwpa == 2) {
-  proto = \"PSK\"
+  proto = \"RSN\"
  }
 		
  print \"TYPE=\\\"wpaa\\\"\" # create work around to always set this even though 
  print \"WPA_PROTO=\\\"\" proto \"\\\"\"
  print \"WPA_PAIRWISE=\\\"\" pairwise \"\\\"\"
  print \"WPA_GROUP=\\\"\" pairwise \"\\\"\"
+ print \"MAC=\\\"\" BSSID \"\\\"\"
  found_type = 1
 } else if ( ! nessid ) {
  print cnt \" \" FRONT ESSID \" [\" MODE \"] \" QUALITY \" \" WPA
@@ -463,7 +469,7 @@ if [[ -z $ESSID && $SCAN -eq 0 && $GENERATE_CONF_ONLY -eq 0 ]]; then
     IFS=$'\n';
     FOUND_AP=0;
 
-    for essid in `iwlist wlan1 scan | grep ESSID`; do
+    for essid in `iwlist ${INTERFACE} scan | grep ESSID`; do
 	essid="`echo $essid | sed -Es 's/^[ ]*ESSID:"([a-zA-Z0-9 !_-]+)"$/\1/g'`"
 	if [ -f "${DEFAULT_CONFIG_DIR}/${essid}.wc" ]; then
 	    # found config for this AP, source config and continue
@@ -520,8 +526,8 @@ WPA_PAIRWISE="";
 WPA_GROUP="";
 WPA_KEY_MGMT="WPA-PSK"; # TODO: Add MGMT parsing
 
-if [[ -z "$TYPE" && "$PASSWORD" != "" ]]; then
-    if function_exists awk && [[ "$TYPE" == "" ]]; then
+if [[ -z "$TYPE" || "$TYPE" == "wpaa" && "$PASSWORD" != "" ]]; then
+    if function_exists awk && [[ "$TYPE" == "" || "$TYPE" == "wpaa" ]]; then
 	iwlist_wrapper "$ESSID";
 	
 	if [[ $(wc "$DEFAULT_TEMP_FILE" | awk '{print $3}') == "0" ]]; then
