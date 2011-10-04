@@ -1,4 +1,4 @@
-#!/bin/bash
+ #!/bin/bash
 
 #
 # Author:		gudgip, DipSwitch, trixter
@@ -84,8 +84,6 @@ Pr0 m0d3: $0
 Open Network: $0 -e ESSID
 Auto Detection: $0 -e ESSID -p PASSWORD
 
-Reuse: $0 -c home.conf
-
 AUTHOR(S):
 gudgip
 DipSwitch
@@ -137,15 +135,19 @@ function safe_ap_config()
     TRUE_FILE="${CONFIG_DIR}/${ESSID}.wc";
     cat > "${TRUE_FILE}" << EOF
 ESSID="$ESSID";
-PASSWORD="$PASSWORD";
-DRIVER="$DRIVER";
 RELOAD=$RELOAD;
-QUIET=$QUIET;
 BROADCAST=$BROADCAST;
 TYPE="$TYPE";
 KEYTYPE="$KEYTYPE";
 MAC="$MAC";
 EOF
+
+    if [ "${TYPE}" == "WEP" ]; then
+	echo "PASSWORD=\"${PASSWORD}\"" >> "${TRUE_FILE}";
+    elif [ "${TYPE}" == "wpaa" ]; then
+	echo "PSK=`echo $PSK | grep -o '[A-Fa-f0-9]*'`;" >> "${TRUE_FILE}";
+    fi;
+
     #return cat exit level
     ret=$?;
 	
@@ -166,6 +168,9 @@ function safe_config()
     cat > "${DEFAULT_MAIN_CONFIG}" <<EOF
 INTERFACE="$INTERFACE";
 LOGFILE="$LOGFILE";
+DRIVER="$DRIVER";
+QUIET=$QUIET;
+CONFIG_DIR="${CONFIG_DIR}"
 EOF
 
     #return cat exit level
@@ -299,32 +304,34 @@ BEGIN {
  } else if (a[1] == \"IE\") {
   x=2
   if (gah[2] != \"Unknown:\") {
-  W=gah[2]
-  for (i = 3; i <= NF; i++) {
-   W =  W \" \" gah[i]
-  }
-  WPA = WPA \"[\" W \"] \"
+   if ( nessid == ESSID && gah[2] == \"IEEE\" ) {
+    inwpa = 2
+   } else if ( nessid == ESSID && gah[2] == \"WPA\" && inwpa <= 1 ) {
+    inwpa = 1
+   }
 
-  if ( nessid == ESSID ) {
-   inwpa++
+   W=gah[2]
+   for (i = 3; i <= NF; i++) {
+    W =  W \" \" gah[i]
+   }
+   WPA = WPA \"[\" W \"] \"
+  }
+ } else if (inwpa > 0 ) {
+  if ( a[1] != \"Extra\" ) {
+   if ( a[1] == \"Group\" ) {
+    group = gah[4]
+   } else if ( a[1] == \"Pairwise\" ) {
+    pairwise = gah[5] \" \" gah[6]
+   } else if ( a[1] == \"Authentication\" ) {
+    auth = gah[5] \" \" gah[6]
+   }
+  }
+ } else {
+  split(gah[1],a,\"=\")
+  if (a[1] == \"Quality\") {
+   QUALITY = a[2]
   }
  }
-} else if (inwpa > 0 ) {
- if ( a[1] != \"Extra\" ) {
-  if ( a[1] == \"Group\" ) {
-   group = gah[4]
-  } else if ( a[1] == \"Pairwise\" ) {
-   pairwise = gah[5] \" \" gah[6]
-  } else if ( a[1] == \"Authentication\" ) {
-   auth = gah[5] \" \" gah[6]
-  }
- }
-} else {
- split(gah[1],a,\"=\")
- if (a[1] == \"Quality\") {
-  QUALITY = a[2]
- }
-}
 }
 }'"
     fi;
@@ -523,12 +530,8 @@ WPA_GROUP="";
 WPA_KEY_MGMT="WPA-PSK"; # TODO: Add MGMT parsing
 
 # SHOULD ALWAYS BE TRUE WHEN PASS IS GIVEN NOW..
-if [[ -z "$TYPE" || "$TYPE" == "wpaa" && "$PASSWORD" != "" ]]; then
+if [[ -z "$TYPE" || "$TYPE" == "wpaa" && "$PASSWORD" != "" || "$PSK" != "" ]]; then
     if function_exists awk && [[ "$TYPE" == "" || "$TYPE" == "wpaa" ]]; then
-	if [[ "$TYPE" == "wpaa" ]]; then
-	    MAC_STORED="${MAC}";
-	fi;
-
 	iwlist_wrapper "$ESSID";
 	
 	if [[ $(wc "$DEFAULT_TEMP_FILE" | awk '{print $3}') == "0" ]]; then
@@ -539,12 +542,14 @@ if [[ -z "$TYPE" || "$TYPE" == "wpaa" && "$PASSWORD" != "" ]]; then
 	stderr "AWK Not found and no encryption type given, work your magic or use the -t flag.";
 	exit 1;
     fi
-elif [[ "${PASSWORD}" != "" ]]; then
+elif [[ "${PASSWORD}" != "" && "$PSK" != "" ]]; then
     stderr "Shouldn't get here, fill me a bug report!";
     exit 1;
 fi
 
 if [[ -f "$DEFAULT_TEMP_FILE" ]]; then
+    MAC_STORED="${MAC}";
+
     . "$DEFAULT_TEMP_FILE";
 
     if [[ ! -z "${MAC_STORED}" && "${MAC}" != "${MAC_STORED}" ]]; then
@@ -554,27 +559,22 @@ if [[ -f "$DEFAULT_TEMP_FILE" ]]; then
     fi;
 fi
 
-if [[ ! -z $PASSWORD && $TYPE == "wpaa" || $TYPE == "wpa" || $TYPE == "wpa2" ]]; then
+if [[ ! -z $PASSWORD || ! -z $PSK && $TYPE == "wpaa" ]]; then
     stdout "Generating new wpa_supplicant file"
     
-    PSK=$(wpa_passphrase "$ESSID" "$PASSWORD" | grep 'psk' | tail -1)
+    if [ ! -z $PASSWORD ]; then
+	PSK=$(wpa_passphrase "$ESSID" "$PASSWORD" | grep 'psk' | tail -1)
+    else
+        # it must be an PSK we are having, nothing to be done
+	PSK="psk=${PSK}";
+    fi;
+	
     SCAN_SSID="#	scan_ssid=1";
     
     if [[ -z $WPA_PROTO || -z $WPA_PAIRWISE || -z $WPA_GROUP ]]; then
-        # the settings coulden't be found let's check if we got some settings from command line..
-	if [[ $TYPE == "wpa2" ]]; then
-	    WPA_PROTO="RSN";
-	    WPA_PAIRWISE="CCMP TKIP";
-	    WPA_GROUP="CCMP TKIP";
-	elif [[ $TYPE == "wpa" ]]; then
-	    WPA_PROTO="WPA";
-	    WPA_PAIRWISE="TKIP";
-	    WPA_GROUP="TKIP";
-	elif [[ $TYPE == "wpaa" ]]; then
-        # now this is critical let's send out a warning and kill this script
+        # all abort the fail boot!
         stderr "Autoparsing didn't understand shit iwlist was telling it... send the output of iwlist $INTERFACE scan and the distro info to debug address...";
 	exit 1;
-	fi;
     fi;
 
     if [[ $BROADCAST -eq 1 ]]; then
@@ -599,7 +599,7 @@ stdout "Start making our connection to '$ESSID' on '$INTERFACE'"
 
 iwconfig $INTERFACE essid "$ESSID" &> $LOGFILE
 
-if [[ ! -z $PASSWORD && $TYPE == "wpaa" || $TYPE == "wpa" || $TYPE == "wpa2" ]]; then
+if [[ ! -z $PASSWORD && $TYPE == "wpaa" || $PSK != "" ]]; then
     stdout "Starting wpa_supplicant on $INTERFACE";
     iwconfig $INTERFACE key off;
     wpa_supplicant -B -Dwext -i $INTERFACE -c /etc/wpa_supplicant.conf &> $LOGFILE

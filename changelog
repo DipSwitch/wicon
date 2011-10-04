@@ -45,3 +45,7 @@ ChangeLog:
 
 02-09-2011:
 	Added: Support for per Access-Point config file and auto detect 'known' access points (DipSwitch)
+
+04-09-2011:
+	Fixed: WPA Auto detection for AP's who only have WPA or WPA2 enabled (DipSwitch)
+	Fixed: When using WPA(2) encryption now only the PSK is stored in the config file (DipSwitch)
