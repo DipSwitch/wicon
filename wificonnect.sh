@@ -42,6 +42,8 @@ function cleanup() {
 	
     safe_config;
 
+    [ -f $DEFAULT_TEMP_FILE ] && rm $DEFAULT_TEMP_FILE;
+
     trap - INT TERM HUP
 	
     exit $PROPERCALL;
@@ -97,7 +99,7 @@ function version()
     cat << EOF
 $0 v1.0 by gudgip, DipSwitch, trixter
 
-Report bugs to dipswitch@ownage4u.nl or https://github.com/DipSwitch/wicon/issues/
+Report bugs to https://github.com/DipSwitch/wicon/issues/
 Home page: https://github.com/DipSwitch/wicon/
 EOF
 }
