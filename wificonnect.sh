@@ -223,7 +223,6 @@ function iwlist_wrapper()
 	NESSID="$1";
     fi;
 	
-	
     FOUND_AWK=0;
     COMMAND="iwlist $INTERFACE scan";
 	
@@ -231,6 +230,8 @@ function iwlist_wrapper()
 	COMMAND="$COMMAND essid \"$NESSID\"";
     fi
 	
+    COMMAND="$COMMAND 2> /dev/null";
+
     if function_exists awk; then
 	FOUND_AWK=1;
 	COMMAND="$COMMAND | awk ";
@@ -340,7 +341,16 @@ BEGIN {
 	COMMAND="$COMMAND > \"$DEFAULT_TEMP_FILE\"";
     fi;
 
-    eval "$COMMAND";
+    COMMAND="$COMMAND; iwlist wlan1 scan > /dev/null 2> /dev/null;";
+
+    # kind of bruteforce, but it's the only way I can think of, maybe only call iwscan once and cache output?
+    # one retry is enough, we choose three to be save.
+    RETRIES=3;
+    while ! eval "$COMMAND" && [ $RETRIES -ne 0 ]; do
+        # set interface up with ifconfig, sometimes the interface goes down
+	ifconfig $INTERFACE up;
+	(( RETRIES-- ));
+    done;
 
     if [[ $FOUND_AWK -eq 0 ]]; then
 	stderr "Please install awk to get a shorter fancy list.";
@@ -465,6 +475,10 @@ done
 
 stdout "Starting $0 script";
 
+if ! iswifi $INTERFACE; then
+    exit 1;
+fi
+
 # TODO when no argument is given, scan all AP's and see if we find one in our config dir
 if [[ -z $ESSID && $SCAN -eq 0 && $GENERATE_CONF_ONLY -eq 0 ]]; then
     # check if we find an ESSID in our config dir
@@ -493,6 +507,7 @@ fi
 
 if [[ $PRINTCONFIG -eq 1 ]]; then
     cat $CONFIG;
+    exit 0;
 fi
 
 if ! iswifi $INTERFACE; then
