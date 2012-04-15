@@ -23,14 +23,10 @@ DEFAULT_TEMP_FILE="`mktemp -u /tmp/wicon.XXXX`";
 
 # cleanup routine on interrupt
 function cleanup() {
-    if [ -e "$DEFAULT_TEMP_FILE" ]; then
-	rm "$DEFAULT_TEMP_FILE";
-    fi;
+    [ -f "$DEFAULT_TEMP_FILE" ] && rm "$DEFAULT_TEMP_FILE";
 	
     # TODO keep this file?
-    if [ -e "$DEFAULT_LOGFILE" ]; then
-	rm "$DEFAULT_LOGFILE";
-    fi;
+    [ -f "$DEFAULT_LOGFILE" ] && rm "$DEFAULT_LOGFILE";
 	
     PROPERCALL=$1;
 	
@@ -41,8 +37,6 @@ function cleanup() {
     fi;
 	
     safe_config;
-
-    [ -f $DEFAULT_TEMP_FILE ] && rm $DEFAULT_TEMP_FILE;
 
     trap - INT TERM HUP
 	
@@ -57,7 +51,7 @@ function usage()
     cat << EOF
 usage: $0 options
 
-New mode: Pr0 m0d3, now if run the application without any arguments, it will first search for any kown AP to connect to
+New mode: Pr0 m0d3, now if run the application without any arguments, it will first search for any known AP to connect to
                     if we found a matching config we'll auto connect. If none is found we print the scan output.
 
 This script can be used to quickly setup an connection to an wireless network.
@@ -128,7 +122,12 @@ function iswifi()
     # apparently we have a wifi device called $1 let's bring it up just to be sure
     ifconfig $1 up;
 
-    return 0;
+    RETVAL=$?;
+    if [ $RETVAL -ne 0 ]; then
+	stderr "$1 could not be brought up with ifconfig";
+    fi;
+
+    return $RETVAL;
 }
 
 # function to safe the AP config
@@ -269,7 +268,7 @@ if ( nessid && inwpa > 0 ) {
  print \"MAC=\\\"\" BSSID \"\\\"\"
  found_type = 1
 } else if ( ! nessid ) {
- print cnt \" \" FRONT ESSID \" [\" MODE \"] \" QUALITY \" \" WPA
+ print cnt \" \" FRONT \"[\"BSSID\"] > \" ESSID \" [\" MODE \"] \" QUALITY \" \" WPA
 }
 	
 WPA=\"\"
@@ -348,7 +347,7 @@ BEGIN {
     # kind of bruteforce, but it's the only way I can think of, maybe only call iwscan once and cache output?
     # one retry is enough, we choose three to be save.
     RETRIES=3;
-    while ! eval "$COMMAND" && [ $RETRIES -ne 0 ]; do
+    while ! eval "$COMMAND" && [ $RETRIES -ne 0 ] && [ ! -z "$NESSID" ]; do
         # set interface up with ifconfig, sometimes the interface goes down
 	ifconfig $INTERFACE up;
 	(( RETRIES-- ));
